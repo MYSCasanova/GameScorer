@@ -28,12 +28,13 @@ h2, h3 {
     box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     backdrop-filter: blur(10px);
 }
-#add-player {
+#add-player-input {
     display: flex;
     gap: 10px;
     margin-bottom: 15px;
 }
-#add-player input {
+
+#add-player-input input {
     flex: 1;
     padding: 12px;
     border: 2px solid #e9ecef;
@@ -45,7 +46,14 @@ h2, h3 {
     outline: none;
     border-color: #007bff;
 }
-#add-player button {
+#add-player-buttons {
+    display: flex;
+    justify-content: center; /* centers buttons */
+    gap: 10px;
+    margin-top: 10px;
+}
+
+#add-player-buttons button {
     padding: 12px 20px;
     background: #3B3636;
     color: white;
