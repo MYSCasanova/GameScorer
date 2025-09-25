@@ -86,9 +86,13 @@
             <h3>Manual Add/Subtract (or use keypad below)</h3>
             <div id="manual-input">
                 <input type="number" id="manual-value" placeholder="Enter value" min="0">
+              </div>
+              
+              <div id="manual-buttons">
                 <button id="add-btn" onclick="applyManual(true)">+</button>
                 <button id="subtract-btn" onclick="applyManual(false)">-</button>
-            </div>
+              </div>
+              
             <div class="keypad-container">
                 <div class="keypad">
                     <button onclick="appendToManual('1')">1</button>
