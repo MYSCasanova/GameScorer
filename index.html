@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Scoring App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Game Scoring App</h1>
+    
+    <div id="player-section">
+        <h2>Players (Up to 8)</h2>
+        <div id="add-player">
+            <input type="text" id="player-name" placeholder="Enter player name">
+            <button onclick="addPlayer()">Add Player</button>
+        </div>
+        <div style="margin-top:10px; text-align:right;">
+            <button onclick="deleteAllPlayers()" 
+                style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer;">
+                Delete All Players
+            </button>
+        </div>        
+        <ul id="players-list"></ul>
+    </div>
+    
+    <div id="scoring-section">
+        <div id="current-player">
+            <span id="selected-player-name"></span>
+            <button id="unselect-btn" onclick="unselectPlayer()">Unselect</button>
+        </div>
+        
+        <!-- Categories (Minimized/Collapsible) -->
+        <div class="category">
+            <div class="category-header" onclick="toggleCategory(this)">Easy</div>
+            <div class="category-content">
+                <div class="game-buttons">
+                    <button class="game-btn" onclick="showGameAction('Jack n Poy', 1)">Jack 'n Poy</button>
+                    <button class="game-btn" onclick="showGameAction('Toss Coin', 1)">Toss Coin</button>
+                    <button class="game-btn" onclick="showGameAction('Uno', 1)">Uno</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category">
+            <div class="category-header" onclick="toggleCategory(this)">Moderate</div>
+            <div class="category-content">
+                <div class="game-buttons">
+                    <button class="game-btn" onclick="showGameAction('Which One', 2)">Which One</button>
+                    <button class="game-btn" onclick="showGameAction('Get that Handkerchief!', 2)">Get that HKF</button>
+                    <button class="game-btn" onclick="showGameAction('Find the Pingpong ball', 2)">Find Pingpong</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category">
+            <div class="category-header" onclick="toggleCategory(this)">Hard</div>
+            <div class="category-content">
+                <div class="game-buttons">
+                    <button class="game-btn" onclick="showGameAction('Bottle Flip', 3)">Bottle Flip</button>
+                    <button class="game-btn" onclick="showGameAction('Paper Cup Flip', 3)">Paper Cup Flip</button>
+                    <button class="game-btn" onclick="showGameAction('Don\'t Ring the Bell', 3)">Don\'t Ring Bell</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category">
+            <div class="category-header" onclick="toggleCategory(this)">Very Hard</div>
+            <div class="category-content">
+                <div class="game-buttons">
+                    <button class="game-btn" onclick="showGameAction('Word Search', 4)">Word Search</button>
+                    <button class="game-btn" onclick="showGameAction('Ping Pong Ball', 4)">Ping Pong Ball</button>
+                    <button class="game-btn" onclick="showGameAction('Bridge Connect', 4)">Bridge Connect</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Manual Keypad Section -->
+        <div id="manual-section">
+            <h3>Manual Add/Subtract (or use keypad below)</h3>
+            <div id="manual-input">
+                <input type="number" id="manual-value" placeholder="Enter value" min="0">
+                <button id="add-btn" onclick="applyManual(true)">+</button>
+                <button id="subtract-btn" onclick="applyManual(false)">-</button>
+            </div>
+            <div class="keypad-container">
+                <div class="keypad">
+                    <button onclick="appendToManual('1')">1</button>
+                    <button onclick="appendToManual('2')">2</button>
+                    <button onclick="appendToManual('3')">3</button>
+                    <button onclick="appendToManual('4')">4</button>
+                    <button onclick="appendToManual('5')">5</button>
+                    <button onclick="appendToManual('6')">6</button>
+                    <button onclick="appendToManual('7')">7</button>
+                    <button onclick="appendToManual('8')">8</button>
+                    <button onclick="appendToManual('9')">9</button>
+                    <button onclick="appendToManual('0')">0</button>
+                    <button onclick="clearManual()">C</button>
+                    <button onclick="applyManual(true, true)">+</button>
+                    <button onclick="applyManual(false, true)">-</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game Action Modal (for + / - specific value) -->
+    <div id="game-modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1001;">
+        <h3 id="modal-title"></h3>
+        <p id="modal-desc"></p>
+        <button onclick="applyGameAction(true)" style="background: #28a745; color: white; padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer;">Add +<span id="add-value"></span></button>
+        <button onclick="applyGameAction(false)" style="background: #dc3545; color: white; padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer;">Subtract -<span id="subtract-value"></span></button>
+        <button onclick="closeModal()" style="background: #6c757d; color: white; padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+    </div>
+    <div id="overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;" onclick="closeModal()"></div>
+    
+    <!-- Overall Score Display (Floating) -->
+    <div id="score-display">Select a player</div>
+
+    <script>
+        let players = []; // Array of {name: string, score: number}
+        let selectedPlayerIndex = -1;
+        let currentGameValue = 0;
+        let currentGameName = '';
+    
+        // Load players from localStorage when page starts
+        window.onload = function() {
+            const saved = localStorage.getItem("players");
+            if (saved) {
+                players = JSON.parse(saved);
+            }
+            renderPlayers();
+        };
+    
+        function savePlayers() {
+            localStorage.setItem("players", JSON.stringify(players));
+        }
+    
+        function addPlayer() {
+            const nameInput = document.getElementById('player-name');
+            const name = nameInput.value.trim();
+            if (name && players.length < 8) {
+                players.push({ name, score: 0 });
+                nameInput.value = '';
+                renderPlayers();
+                savePlayers(); // save after adding
+            } else if (players.length >= 8) {
+                alert('Maximum 8 players allowed.');
+            }
+        }
+    
+        function renderPlayers() {
+            const list = document.getElementById('players-list');
+            list.innerHTML = '';
+            players.forEach((player, index) => {
+                const li = document.createElement('li');
+                const nameSpan = document.createElement('span');
+nameSpan.textContent = `${player.name} (Score: ${player.score})`;
+nameSpan.style.flex = "1";
+nameSpan.onclick = () => selectPlayer(index);
+
+const delBtn = document.createElement('button');
+delBtn.textContent = "❌";
+delBtn.style.marginLeft = "10px";
+delBtn.style.background = "linear-gradient(135deg, #dc3545, #c82333)";
+delBtn.style.color = "white";
+delBtn.style.border = "none";
+delBtn.style.padding = "5px 10px";
+delBtn.style.borderRadius = "6px";
+delBtn.style.cursor = "pointer";
+delBtn.onclick = (e) => {
+    e.stopPropagation(); // prevent selecting player
+    deletePlayer(index);
+};
+
+li.appendChild(nameSpan);
+li.appendChild(delBtn);
+
+                if (index === selectedPlayerIndex) {
+                    li.classList.add('selected');
+                }
+                list.appendChild(li);
+            });
+            updateScoreDisplay();
+            savePlayers(); // keep storage updated
+        }
+    
+        function selectPlayer(index) {
+            selectedPlayerIndex = index;
+            document.getElementById('scoring-section').style.display = 'block';
+            document.getElementById('selected-player-name').textContent = `Selected: ${players[index].name}`;
+            renderPlayers(); 
+            document.querySelectorAll('.category-content').forEach(content => content.classList.remove('show'));
+        }
+    
+        function unselectPlayer() {
+            selectedPlayerIndex = -1;
+            document.getElementById('scoring-section').style.display = 'none';
+            document.getElementById('selected-player-name').textContent = '';
+            renderPlayers();
+            updateScoreDisplay();
+        }
+    
+        function toggleCategory(header) {
+            const content = header.nextElementSibling;
+            content.classList.toggle('show');
+        }
+    
+        function showGameAction(gameName, value) {
+            currentGameName = gameName;
+            currentGameValue = value;
+            document.getElementById('modal-title').textContent = gameName;
+            document.getElementById('modal-desc').textContent = 'Choose to add or subtract points for this game.';
+            document.getElementById('add-value').textContent = value;
+            document.getElementById('subtract-value').textContent = value;
+            document.getElementById('game-modal').style.display = 'block';
+            document.getElementById('overlay').style.display = 'block';
+        }
+    
+        function applyGameAction(add) {
+            if (selectedPlayerIndex === -1) return;
+            const delta = add ? currentGameValue : -currentGameValue;
+            players[selectedPlayerIndex].score += delta;
+            renderPlayers();
+            savePlayers(); // save after update
+            closeModal();
+            unselectPlayer(); 
+        }
+    
+        function closeModal() {
+            document.getElementById('game-modal').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+        }
+    
+        function applyManual(add, fromKeypad = false) {
+            if (selectedPlayerIndex === -1) return;
+            const input = document.getElementById('manual-value');
+            let value = parseInt(input.value) || (fromKeypad ? 1 : 0);
+            if (value === 0 && !fromKeypad) return;
+            const delta = add ? value : -value;
+            players[selectedPlayerIndex].score += delta;
+            input.value = '';
+            renderPlayers();
+            savePlayers(); // save after manual change
+            unselectPlayer(); 
+        }
+    
+        function appendToManual(digit) {
+            const input = document.getElementById('manual-value');
+            input.value += digit;
+        }
+    
+        function clearManual() {
+            document.getElementById('manual-value').value = '';
+        }
+    
+        function updateScoreDisplay() {
+            if (selectedPlayerIndex !== -1) {
+                const player = players[selectedPlayerIndex];
+                document.getElementById('score-display').textContent = `${player.name}: ${player.score}`;
+            } else {
+                document.getElementById('score-display').textContent = 'Select a player';
+            }
+        }
+        function deletePlayer(index) {
+            players.splice(index, 1);
+            if (selectedPlayerIndex === index) {
+                selectedPlayerIndex = -1;
+                document.getElementById('scoring-section').style.display = 'none';
+            }
+            renderPlayers();
+            savePlayers();
+        }
+
+        function deleteAllPlayers() {
+            if (confirm("Are you sure you want to delete all players?")) {
+                players = [];
+                selectedPlayerIndex = -1;
+                renderPlayers();
+                savePlayers();
+                document.getElementById('scoring-section').style.display = 'none';
+            }
+        }
+
+    </script>
+    
+</body>
+</html>
