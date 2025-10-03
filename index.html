@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Game Scoring App</title>
+  <title>GAMOPOLY SCORER</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Game Scoring App</h1>
+  <h1>GAMOPOLY SCORER<br>Let's Play!</h1>
+  
 
   <div id="player-section">
-    <h2>Players (Up to 8)</h2>
+    <h2>Add Players!</h2>
 
     <!-- input section -->
     <div id="add-player-input">
@@ -29,12 +30,24 @@
     <ul id="players-list"></ul>
   </div>
 
+  <div id="timer-section">
+    <h2>Game Timer</h2>
+    <div id="timer-display">01:00:00</div>
+    <div id="timer-controls">
+      <button onclick="startTimer()">Start</button>
+      <button onclick="pauseTimer()">Pause</button>
+      <button onclick="resetTimer()">Reset</button>
+    </div>
+  </div>
+
   <div id="scoring-section" style="display:none;">
     <div id="current-player">
       <span id="selected-player-name"></span>
       <button id="unselect-btn" onclick="unselectPlayer()">Unselect</button>
     </div>
-
+    <div id="go-button">
+      <button class="game-btn" onclick="showGameAction('Go', 3)">Pass GO</button>
+    </div>
     <!-- Categories (collapsible) -->
     <div class="category">
       <div class="category-header" onclick="toggleCategory(this)">Easy</div>
@@ -51,9 +64,9 @@
       <div class="category-header" onclick="toggleCategory(this)">Moderate</div>
       <div class="category-content">
         <div class="game-buttons">
-          <button class="game-btn" onclick="showGameAction('Which One', 2)">Which One</button>
-          <button class="game-btn" onclick="showGameAction('Get that Handkerchief!', 2)">Get that HKF</button>
-          <button class="game-btn" onclick="showGameAction('Find the Pingpong ball', 2)">Find Pingpong</button>
+          <button class="game-btn" onclick="showGameAction('Which One', [1,2,3])">Which One</button>
+          <button class="game-btn" onclick="showGameAction('Get that Handkerchief!', 3)">Get that HKF</button>
+          <button class="game-btn" onclick="showGameAction('Find the Pingpong ball', 3)">Find Pingpong</button>
         </div>
       </div>
     </div>
@@ -62,9 +75,9 @@
       <div class="category-header" onclick="toggleCategory(this)">Hard</div>
       <div class="category-content">
         <div class="game-buttons">
-          <button class="game-btn" onclick="showGameAction('Bottle Flip', 3)">Bottle Flip</button>
-          <button class="game-btn" onclick="showGameAction('Paper Cup Flip', 3)">Paper Cup Flip</button>
-          <button class="game-btn" onclick="showGameAction('Don\'t Ring the Bell', 3)">Don\'t Ring Bell</button>
+          <button class="game-btn" onclick="showGameAction('Bottle Flip', [3,6,9])">Bottle Flip</button>
+          <button class="game-btn" onclick="showGameAction('Paper Cup Flip', [3,6,9])">Paper Cup Flip</button>
+          <button class="game-btn" onclick="showGameAction('Don\'t Ring the Bell <br>Win = 5 : Lose = -3', [3,5])">Don't Ring Bell</button>
         </div>
       </div>
     </div>
@@ -73,9 +86,9 @@
       <div class="category-header" onclick="toggleCategory(this)">Very Hard</div>
       <div class="category-content">
         <div class="game-buttons">
-          <button class="game-btn" onclick="showGameAction('Word Search', 4)">Word Search</button>
-          <button class="game-btn" onclick="showGameAction('Ping Pong Ball', 4)">Ping Pong Ball</button>
-          <button class="game-btn" onclick="showGameAction('Bridge Connect', 4)">Bridge Connect</button>
+          <button class="game-btn" onclick="showGameAction('Word Search', [1,2,3,4,10])">Word Search</button>
+          <button class="game-btn" onclick="showGameAction('Ping Pong Ball<br>Win = 8 : Lose = -4', [4,8])">Ping Pong Ball</button>
+          <button class="game-btn" onclick="showGameAction('Bridge Connect <br> Success = 10 : Fail = -5', [5,10])">Bridge Connect</button>
         </div>
       </div>
     </div>
@@ -113,14 +126,12 @@
   </div>
 
   <!-- Game Action Modal -->
-  <div id="game-modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1001;">
+  <div id="game-modal" style="display: none;">
     <h3 id="modal-title"></h3>
     <p id="modal-desc"></p>
-    <button onclick="applyGameAction(true)" style="background: #28a745; color: white; padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer;">Add +<span id="add-value"></span></button>
-    <button onclick="applyGameAction(false)" style="background: #dc3545; color: white; padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer;">Subtract -<span id="subtract-value"></span></button>
-    <button onclick="closeModal()" style="background: #6c757d; color: white; padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+    <!-- Dynamic buttons will be inserted here by JS -->
   </div>
-  <div id="overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;" onclick="closeModal()"></div>
+  <div id="overlay" style="display: none;" onclick="closeModal()"></div>
 
   <script>
     let players = []; 
@@ -149,36 +160,43 @@
       const list = document.getElementById('players-list');
       list.innerHTML = '';
 
-      players.forEach((player, index) => {
+      // sort players by score (descending), keep original index for selection
+      const sortedPlayers = players
+        .map((player, index) => ({ ...player, originalIndex: index }))
+        .sort((a, b) => b.score - a.score);
+
+      sortedPlayers.forEach((player) => {
         const li = document.createElement('li');
 
+        // Create separate spans for name and score for better layout
         const nameSpan = document.createElement('span');
-        nameSpan.textContent = `${player.name} (Score: ${player.score})`;
-        nameSpan.style.flex = "1";
+        nameSpan.className = 'player-name';
+        nameSpan.textContent = player.name;
         nameSpan.onclick = (e) => {
           e.stopPropagation();
-          selectPlayer(index);
+          selectPlayer(player.originalIndex);
         };
 
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'player-score';
+        scoreSpan.textContent = `${player.score}`;
+
+        // Delete button: Small X in top-right corner
         const delBtn = document.createElement('button');
         delBtn.textContent = "❌";
         delBtn.setAttribute('aria-label', 'Delete player');
-        delBtn.style.marginLeft = "10px";
-        delBtn.style.background = "linear-gradient(135deg, #dc3545, #c82333)";
-        delBtn.style.color = "white";
-        delBtn.style.border = "none";
-        delBtn.style.padding = "5px 10px";
-        delBtn.style.borderRadius = "6px";
-        delBtn.style.cursor = "pointer";
+        delBtn.className = 'delete-player-btn'; // For CSS styling
         delBtn.onclick = (e) => {
           e.stopPropagation();
-          deletePlayer(index);
+          deletePlayer(player.originalIndex);
         };
 
+        // Append elements to li
         li.appendChild(nameSpan);
+        li.appendChild(scoreSpan);
         li.appendChild(delBtn);
-        li.classList.toggle('selected', index === selectedPlayerIndex);
-        li.onclick = () => selectPlayer(index);
+        li.classList.toggle('selected', player.originalIndex === selectedPlayerIndex);
+        li.onclick = () => selectPlayer(player.originalIndex); // Select on card click
 
         list.appendChild(li);
       });
@@ -223,13 +241,59 @@
 
     function showGameAction(gameName, value) {
       currentGameName = gameName;
-      currentGameValue = value;
-      document.getElementById('modal-title').textContent = gameName;
-      document.getElementById('modal-desc').textContent = 'Choose to add or subtract points for this game.';
-      document.getElementById('add-value').textContent = value;
-      document.getElementById('subtract-value').textContent = value;
-      document.getElementById('game-modal').style.display = 'block';
+
+      let modal = document.getElementById('game-modal');
+      let buttonsHTML = '';
+
+      if (Array.isArray(value)) {
+        // If multiple values are passed (like [1,2,3])
+        value.forEach(v => {
+          buttonsHTML += `
+            <button onclick="applyCustomGameAction(true, ${v})" 
+              style="background:#28a745;color:white;padding:10px 20px;margin:5px;border:none;border-radius:4px;cursor:pointer;">
+              Add +${v}
+            </button>
+            <button onclick="applyCustomGameAction(false, ${v})" 
+              style="background:#dc3545;color:white;padding:10px 20px;margin:5px;border:none;border-radius:4px;cursor:pointer;">
+              Subtract -${v}
+            </button><br>
+          `;
+        });
+      } else {
+        // Fallback for single-value games
+        currentGameValue = value;
+        buttonsHTML = `
+          <button onclick="applyCustomGameAction(true, ${value})" 
+            style="background:#28a745;color:white;padding:10px 20px;margin:5px;border:none;border-radius:4px;cursor:pointer;">
+            Add +${value}
+          </button>
+          <button onclick="applyCustomGameAction(false, ${value})" 
+            style="background:#dc3545;color:white;padding:10px 20px;margin:5px;border:none;border-radius:4px;cursor:pointer;">
+            Subtract -${value}
+          </button>
+        `;
+      }
+
+      modal.innerHTML = `
+        <h3>${gameName}</h3>
+        <p>Choose a point value to add or subtract:</p>
+        ${buttonsHTML}
+        <button onclick="closeModal()" 
+          style="background:#6c757d;color:white;padding:10px 20px;margin:5px;border:none;border-radius:4px;cursor:pointer;">
+          Cancel
+        </button>
+      `;
+
+      modal.style.display = 'block';
       document.getElementById('overlay').style.display = 'block';
+    }
+
+    function applyCustomGameAction(add, value) {
+      if (selectedPlayerIndex === -1) return;
+      players[selectedPlayerIndex].score += add ? value : -value;
+      closeModal();
+      renderPlayers();
+      saveState();
     }
 
     function applyGameAction(add) {
@@ -304,6 +368,100 @@
         saveState();
       }
     });
+
+    // Timer functions (unchanged)
+    let timerInterval;
+    let timeRemaining = 3600; // default: 1 hour in seconds
+    let isRunning = false;
+    let endTime = null; // store absolute end time (Date.now() + remaining ms)
+
+// Update the visible timer
+function updateTimerDisplay() {
+  const hours = String(Math.floor(timeRemaining / 3600)).padStart(2, '0');
+  const minutes = String(Math.floor((timeRemaining % 3600) / 60)).padStart(2, '0');
+  const seconds = String(timeRemaining % 60).padStart(2, '0');
+  document.getElementById('timer-display').textContent = `${hours}:${minutes}:${seconds}`;
+}
+
+// Save timer state to localStorage
+function saveTimerState() {
+  localStorage.setItem('timerState', JSON.stringify({
+    timeRemaining,
+    isRunning,
+    endTime
+  }));
+}
+
+// Load timer state on page refresh
+function loadTimerState() {
+  const saved = localStorage.getItem('timerState');
+  if (!saved) return;
+
+  const state = JSON.parse(saved);
+  timeRemaining = state.timeRemaining;
+  isRunning = state.isRunning;
+  endTime = state.endTime;
+
+  if (isRunning && endTime) {
+    // Recalculate remaining time
+    const now = Date.now();
+    timeRemaining = Math.max(0, Math.floor((endTime - now) / 1000));
+    if (timeRemaining > 0) {
+      startTimer(true); // resume automatically
+    } else {
+      timeRemaining = 0;
+      isRunning = false;
+    }
+  }
+  updateTimerDisplay();
+}
+
+function startTimer(resume = false) {
+  if (isRunning && !resume) return; // don’t restart if already running
+  isRunning = true;
+  if (!resume) {
+    endTime = Date.now() + timeRemaining * 1000; // set new end time
+  }
+  saveTimerState();
+
+  timerInterval = setInterval(() => {
+    const now = Date.now();
+    timeRemaining = Math.max(0, Math.floor((endTime - now) / 1000));
+    updateTimerDisplay();
+    saveTimerState();
+
+    if (timeRemaining <= 0) {
+      clearInterval(timerInterval);
+      isRunning = false;
+      saveTimerState();
+      alert("⏰ Time’s up!");
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  clearInterval(timerInterval);
+  isRunning = false;
+  endTime = null; // clear end time
+  saveTimerState();
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timeRemaining = 3600; // reset to 1 hour
+  isRunning = false;
+  endTime = null;
+  updateTimerDisplay();
+  saveTimerState();
+}
+
+// Initialize on page load
+window.addEventListener('DOMContentLoaded', () => {
+  loadTimerState();
+  updateTimerDisplay();
+});
+
   </script>
 </body>
 </html>
+
