@@ -1,20 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Monoton&display=swap');
+
 body {
     font-family: 'Roboto', sans-serif;
-    max-width: 800px;
+    max-width: 900px;
     margin: 0 auto;
     padding: 20px;
     background: #CCEAE4;
     min-height: 100vh;
     color: #333;
 }
+
+/* Enhanced H1 with new colors and Monopoly font */
 h1 {
-    text-align: center;
-    color: white;
-    text-shadow: 0 2px 4px black;
-    margin-bottom: 30px;
-    font-size: 2.5em;
-    font-weight: 700;
+  text-align: center;
+  font-size: 3em; /* Keeps the bold scale for impact */
+  font-weight: 800; /* Monoton is naturally bold, but this reinforces it */
+  margin: 0 auto 40px;
+  padding: 20px;
+  max-width: 80%;
+  
+  /* Changed font to Monopoly-style (Monoton) - blocky, all-caps for that classic board game feel */
+  font-family: 'Monoton', sans-serif;
+  text-transform: uppercase; /* Ensures all-caps like Monopoly text */
+  
+  /* New gradient: Vibrant red-to-orange (Monopoly-inspired colors for houses/money) */
+  /* This pops against the pale teal body without clashing - warm and energetic */
+  background: linear-gradient(90deg, #e74c3c, #f39c12, #2ecc71); /* Red -> Orange -> Green for thematic depth */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  
+  /* Updated text shadow: Matches the new gradient with warmer glows for better contrast on light bg */
+  text-shadow: 
+    0 0 10px rgba(231, 76, 60, 0.5), /* Subtle red glow */
+    2px 2px 6px rgba(0, 0, 0, 0.3),
+    0 4px 8px rgba(46, 204, 113, 0.3); /* Green tint to tie in */
+  
+  /* Spacing and readability tweaks - slightly wider for the blocky font */
+  letter-spacing: 3px; /* Increased for Monoton's bold style */
+  line-height: 1.1;
+  
+  /* Animation unchanged but now complements the new colors */
+  animation: fadeInGlow 1.5s ease-out;
+  
+  /* Hover effect updated for new colors */
+  transition: transform 0.3s ease, text-shadow 0.3s ease;
 }
+
+h1:hover {
+  transform: scale(1.02);
+  text-shadow: 
+    0 0 20px rgba(231, 76, 60, 0.7), /* Brighter red glow */
+    2px 2px 8px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(46, 204, 113, 0.5); /* Enhanced green */
+}
+
+/* Keyframe animation - updated shadows to match new colors */
+@keyframes fadeInGlow {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+    text-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    text-shadow: 
+      0 0 10px rgba(231, 76, 60, 0.5),
+      2px 2px 6px rgba(0, 0, 0, 0.3),
+      0 4px 8px rgba(46, 204, 113, 0.3);
+  }
+}
+
+/* Responsive adjustments - font scales down gracefully */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2.5em;
+    padding: 15px;
+    letter-spacing: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 2em;
+    max-width: 95%;
+    letter-spacing: 1.5px;
+  }
+}
+
 h2, h3 {
     text-align: center;
     color: #495057;
@@ -67,43 +141,91 @@ h2, h3 {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0,123,255,0.3);
 }
+
+/* Redesigned Players List: Square cards in horizontal rows (max 3 per row), with big name and score at bottom */
 #players-list {
     list-style: none;
     padding: 0;
+    margin: 20px 0; /* Add some top/bottom margin for spacing */
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Max 3 per row */
+    gap: 20px; /* Space between cards */
+    justify-items: center; /* Center cards in grid */
+    max-width: 100%; /* Ensure it fits container */
 }
+
 #players-list li {
-    padding: 15px;
-    margin: 8px 0;
+    /* Square shape: Fixed aspect ratio for uniformity */
+    aspect-ratio: 1 / 1;
+    width: 180px; /* Base width; height auto via aspect-ratio */
+    min-height: 180px; /* Minimum size for consistency */
     background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-    border-radius: 8px;
+    border-radius: 12px; /* Rounded square corners */
     cursor: pointer;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 500;
+    flex-direction: column; /* Vertical layout: name on top, score at bottom */
+    justify-content: space-between; /* Push name to top, score to bottom */
+    align-items: center; /* Center horizontally */
+    padding: 20px 15px; /* Inner padding */
+    font-weight: 600;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Slightly deeper shadow for card feel */
     position: relative;
     overflow: hidden;
+    border: 2px solid rgba(0, 123, 255, 0.2); /* Subtle blue border for theme */
 }
-#players-list li::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 4px;
-    background: #007bff;
-    transition: width 0.3s ease;
+
+/* Assume HTML structure: <li><span class="player-name">Name</span><span class="player-score">Score: 0</span></li> */
+/* If not, adjust your HTML to include these classes for name and score */
+#players-list .player-name {
+    font-size: 1.9em; /* Big name */
+    text-align: center;
+    color: #333;
+    font-weight: 700;
+    line-height: 1.2;
+    flex-grow: 1; /* Take available space */
+    display: flex;
+    align-items: center; /* Vertically center if space */
 }
+
+#players-list .player-score {
+    font-size: 6.0rem; /* Score at bottom, slightly smaller but prominent */
+    text-align: center;
+    color: #007bff; /* Blue for scores to stand out */
+    font-weight: 600;
+    padding-bottom: 20px;
+    width: 100%; /* Full width for border */
+}
+
+/* Hover effect: Slight lift and color shift for engagement */
 #players-list li:hover {
-    transform: translateX(5px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transform: translateY(-5px) scale(1.02); /* Lift and subtle zoom */
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    background: linear-gradient(135deg, #e9ecef, #dee2e6); /* Lighter gradient on hover */
 }
+
+/* Selected state: Green theme, more prominent */
 #players-list li.selected {
-    background: linear-gradient(135deg, #28a745, #20c997); /* green gradient */
+    background: linear-gradient(135deg, #28a745, #20c997); /* Green gradient */
+    color: white;
+    border-color: #28a745;
+    box-shadow: 0 6px 16px rgba(40, 167, 69, 0.3);
+}
+
+#players-list li.selected .player-name,
+#players-list li.selected .player-score {
     color: white;
 }
+
+#players-list li.selected .player-score {
+    border-top-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Remove the old ::before bar since we're using squares */
+#players-list li::before {
+    display: none; /* Hide the old left bar */
+}
+
 #scoring-section {
     background: rgba(255, 255, 255, 0.95);
     padding: 20px;
@@ -287,6 +409,56 @@ h2, h3 {
     grid-column: span 3;
     background: linear-gradient(135deg, #007bff, #0056b3);
 }
+#go-button {
+    
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+#go-button .game-btn {
+  font-size: 20px;     /* larger text */
+  padding: 10px 30px;  /* bigger button */
+  background-color: #4CAF50; /* example styling */
+  color: white;
+  border-radius: 10px;
+}
+#timer-section {
+  position: fixed;          /* stays in place even when scrolling */
+  top: 20px;                /* distance from top */
+  right: 20px;              /* distance from right */
+  text-align: center;
+  background: rgba(255, 255, 255, 0.9); /* subtle background */
+  padding: 10px 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  z-index: 2000;            /* keeps it above other elements */
+}
+
+#timer-display {
+  font-size: 3em;           /* make it big */
+  font-weight: bold;
+  margin: 5px 0;
+  color: #333;
+}
+
+#timer-controls {
+  margin-top: 10px;
+}
+
+#timer-controls button {
+  margin: 3px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+
+#timer-controls button:nth-child(1) { background: #28a745; color: white; } /* Start */
+#timer-controls button:nth-child(2) { background: #ffc107; color: black; } /* Pause */
+#timer-controls button:nth-child(3) { background: #dc3545; color: white; } /* Reset */
+
+
 #current-player {
     text-align: center;
     font-weight: 600;
